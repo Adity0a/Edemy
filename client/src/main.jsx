@@ -1,9 +1,9 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
-import { AppContextProvider } from './context/AppContext.jsx'
-import {BrowserRouter} from 'react-router-dom'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import "./index.css";
+import App from "./App.jsx";
+import { AppContextProvider } from "./context/AppContext.jsx";
+import { BrowserRouter } from "react-router-dom";
 import { ClerkProvider } from "@clerk/react";
 
 // Import your Publishable Key
@@ -14,11 +14,11 @@ if (!PUBLISHABLE_KEY) {
 }
 
 createRoot(document.getElementById("root")).render(
-  <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
-    <BrowserRouter>
+  <BrowserRouter>
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
       <AppContextProvider>
         <App />
       </AppContextProvider>
-    </BrowserRouter>
-  </ClerkProvider>,
+    </ClerkProvider>
+  </BrowserRouter>,
 );
