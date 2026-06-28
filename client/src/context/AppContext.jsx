@@ -32,23 +32,43 @@ export const AppContextProvider = (props)=>{
     }
 
     // Function to calculate average rating of course
-    const calculateRating = (course)=>{
-        if(course.courseRatings.length === 0){
+    const calculateRating = (course) => {
+        if (course.courseRatings.length === 0) {
             return 0;
         }
         let totalRating = 0
-        course.courseRatings.forEach(rating =>{
+        course.courseRatings.forEach(rating => {
             totalRating += rating.rating
         })
         return totalRating / course.courseRatings.length
     }
 
-    useEffect(()=>{
+    // Function to calculate course duration
+    const calculateCourseDuration = (course) => {
+        let time = 0
+        course.courseContent.map((chapter) => chapter.chapterContent.map(
+            (lecture) => time += lecture.lectureDuration
+        ))
+        return time + 'm'
+    }
+
+    // Function to calculate to number of lectures in the course
+    const calculateNoOfLectures = (course) => {
+        let totalLectures = 0;
+        course.courseContent.forEach(chapter => {
+            if (Array.isArray(chapter.chapterContent)) {
+                totalLectures += chapter.chapterContent.length;
+            }
+        });
+        return totalLectures;
+    }
+
+    useEffect(() => {
         fetchAllCourses()
-    },[])
+    }, [])
 
     const value = {
-        currency, allCourses, navigate, calculateRating, isEducator, setIsEducator, backendUrl
+        currency, allCourses, navigate, calculateRating, isEducator, setIsEducator, backendUrl, calculateCourseDuration, calculateNoOfLectures
     }
 
     return(

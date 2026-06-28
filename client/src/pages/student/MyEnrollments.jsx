@@ -6,7 +6,7 @@ import Footer from '../../components/student/Footer'
 
 const MyEnrollments = () => {
 
-  const { backendUrl, navigate } = useContext(AppContext)
+  const { backendUrl, navigate, calculateCourseDuration, calculateNoOfLectures } = useContext(AppContext)
   const { getToken } = useAuth()
   const { user } = useUser()
   const [enrolledCourses, setEnrolledCourses] = useState([])
@@ -59,19 +59,19 @@ const MyEnrollments = () => {
                   <div className='flex-1'>
                     <p className='mb-1 max-sm:text-sm'>{course.courseTitle}</p>
                     <div className='bg-gray-200 h-1.5 w-full rounded-full relative overflow-hidden'>
-                      <div className='absolute left-0 top-0 bg-blue-500 h-full w-[45%]' />
+                      <div className='absolute left-0 top-0 bg-blue-500 h-full' style={{ width: `${(course.completedLectures.length / calculateNoOfLectures(course)) * 100}%` }} />
                     </div>
                   </div>
                 </td>
                 <td className='px-4 py-3 max-sm:hidden'>
-                  22h 30m
+                  {calculateCourseDuration(course)}
                 </td>
                 <td className='px-4 py-3 max-sm:hidden'>
-                  12 / 24
+                  {course.completedLectures.length} / {calculateNoOfLectures(course)}
                 </td>
                 <td className='px-4 py-3 text-right md:text-left'>
                   <button onClick={() => navigate('/player/' + course._id)} className='px-3 sm:px-5 py-1.5 sm:py-2 bg-blue-600 text-white max-sm:text-xs rounded'>
-                    {false ? 'Completed' : 'On Going'}
+                    {course.completedLectures.length === calculateNoOfLectures(course) ? 'Completed' : 'On Going'}
                   </button>
                 </td>
               </tr>
