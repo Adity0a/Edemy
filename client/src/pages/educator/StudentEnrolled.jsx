@@ -1,18 +1,49 @@
-import React, { useEffect, useState } from 'react'
-import { dummyStudentEnrolled } from '../../assets/assets'
+import React, { useContext, useEffect, useState } from 'react'
+import { assets } from '../../assets/assets'
 import Loading from '../../components/student/Loading'
+import axios from 'axios'
+import { AppContext } from '../../context/AppContext'
+import { useAuth, useUser } from '@clerk/react'
 
 const StudentEnrolled = () => {
 
+  const { backendUrl } = useContext(AppContext)
+  const { getToken } = useAuth()
+  const { user } = useUser()
   const [enrolledStudents, setEnrolledStudents] = useState(null)
 
   const fetchEnrolledStudents = async () => {
-    setEnrolledStudents(dummyStudentEnrolled)
+    try {
+      if (!user) {
+        console.warn("StudentEnrolled: User object not available.");
+        return;
+      }
+      const token = await getToken()
+      console.log("StudentEnrolled: Fetching enrolled students for educator:", user.id);
+
+      const { data } = await axios.get(backendUrl + '/api/educator/enrolled-students', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          userid: user.id
+        }
+      })
+
+      if (data.success) {
+        console.log("StudentEnrolled: Successfully fetched students:", data.enrolledStudents);
+        setEnrolledStudents(data.enrolledStudents)
+      } else {
+        console.error("StudentEnrolled API Error:", data.message)
+      }
+    } catch (error) {
+      console.error("StudentEnrolled Fetch Error:", error.message)
+    }
   }
 
   useEffect(() => {
-    fetchEnrolledStudents()
-  }, [])
+    if (user) {
+      fetchEnrolledStudents()
+    }
+  }, [user])
 
   return enrolledStudents ? (
     <div className='min-h-screen flex flex-col items-start justify-between md:p-8 p-4 pt-8 pb-0'>

@@ -1,0 +1,37 @@
+[
+  {
+    "_id": "user_3Figo8vwForNiHU1CX2VSambGjG",
+    "name": "College (You)",
+    "email": "college@example.com",
+    "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvYXZhdGFyMSJ9",
+    "enrolledCourses": []
+  },
+  {
+    "_id": "user_student_001",
+    "name": "Richard Sanford",
+    "email": "richard@example.com",
+    "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvYXZhdGFyMSJ9",
+    "enrolledCourses": []
+  },
+  {
+    "_id": "user_student_002",
+    "name": "Enrique Murphy",
+    "email": "enrique@example.com",
+    "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvYXZhdGFyMiJ9",
+    "enrolledCourses": []
+  },
+  {
+    "_id": "user_student_003",
+    "name": "Alison Powell",
+    "email": "alison@example.com",
+    "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvYXZhdGFyMyJ9",
+    "enrolledCourses": []
+  },
+  {
+    "_id": "user_educator_002",
+    "name": "Great Stack",
+    "email": "greatstack@example.com",
+    "imageUrl": "https://img.clerk.com/eyJ0eXBlIjoicHJveHkiLCJzcmMiOiJodHRwczovL2ltYWdlcy5jbGVyay5kZXYvYXZhdGFyNSJ9",
+    "enrolledCourses": []
+  }
+]

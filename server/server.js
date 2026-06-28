@@ -2,8 +2,10 @@ import express from 'express'
 import 'dotenv/config'
 import cors from 'cors'
 import connectDB from './config/db.js';
-import adminRouter from './routes/adminRoutes.js';
-import blogRouter from './routes/blogRoutes.js';
+import courseRouter from './routes/courseRoutes.js';
+import userRouter from './routes/userRoutes.js';
+import educatorRouter from './routes/educatorRoutes.js';
+import { protectEducator, protectUser } from './middleware/auth.js';
 
 const app = express();
 
@@ -15,8 +17,11 @@ app.use(express.json())
 
 //Routes
 app.get('/', (req,res)=>res.send("API is Working"))
-app.use('/api/admin', adminRouter)
-app.use('/api/blog', blogRouter)
+
+// LMS Routes
+app.use('/api/course', courseRouter)
+app.use('/api/user', protectUser, userRouter)
+app.use('/api/educator', protectEducator, educatorRouter)
 
 const PORT = process.env.PORT || 3000;
 

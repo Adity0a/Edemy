@@ -1,0 +1,30 @@
+[
+  {
+    "courseId": { "$oid": "605c72efb3f1c2b1f8e4e1a1" },
+    "userId": "user_3Figo8vwForNiHU1CX2VSambGjG",
+    "amount": 39.99,
+    "status": "completed",
+    "createdAt": { "$date": "2024-06-20T10:00:00Z" }
+  },
+  {
+    "courseId": { "$oid": "675ac1512100b91a6d9b8b24" },
+    "userId": "user_3Figo8vwForNiHU1CX2VSambGjG",
+    "amount": 67.99,
+    "status": "completed",
+    "createdAt": { "$date": "2024-06-21T11:30:00Z" }
+  },
+  {
+    "courseId": { "$oid": "605c72efb3f1c2b1f8e4e1ae" },
+    "userId": "user_student_003",
+    "amount": 59.49,
+    "status": "completed",
+    "createdAt": { "$date": "2024-06-22T09:15:00Z" }
+  },
+  {
+    "courseId": { "$oid": "605c72efb3f1c2b1f8e4e1a1" },
+    "userId": "user_student_001",
+    "amount": 39.99,
+    "status": "completed",
+    "createdAt": { "$date": "2024-06-23T14:45:00Z" }
+  }
+]

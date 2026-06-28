@@ -4,6 +4,7 @@ import CourseList from "./pages/student/CourseList";
 import Home from "./pages/student/Home";
 import CourseDetail from "./pages/student/CourseDetail";
 import MyEnrollments from "./pages/student/MyEnrollments";
+import PaymentPage from "./pages/student/PaymentPage";
 import Player from "./pages/student/Player";
 import Loading from "./components/student/Loading";
 import Educator from "./pages/educator/Educator";
@@ -18,26 +19,29 @@ const App = () => {
   const isEducatorRoute = useMatch("/educator/*");
 
   return (
-    <div className="text-default min-h-screen bg-white">
+    <div className="text-default min-h-screen bg-white flex flex-col">
       {!isEducatorRoute && <Navbar />}
-      <Routes>
-        //Student
-        <Route path="/" element={<Home />} />
-        <Route path="/course-list" element={<CourseList />} />
-        <Route path="/course-list/:input" element={<CourseList />} />
-        <Route path="/course/:id" element={<CourseDetail />} />
-        <Route path="/my-enrollments" element={<MyEnrollments />} />
-        <Route path="/player/:courseId" element={<Player />} />
-        <Route path="/loading/:path" element={<Loading />} />
-        
-        //Educator
-        <Route path="/educator" element={<Educator />}>
-          <Route path="educator" element={<Dashboard />} />
-          <Route path="add-course" element={<AddCourse />} />
-          <Route path="my-course" element={<MyCourses />} />
-          <Route path="student-enrolled" element={<StudentEnrolled />} />
-        </Route>
-      </Routes>
+      <div className="flex-1">
+        <Routes>
+          //Student
+          <Route path="/" element={<Home />} />
+          <Route path="/course-list" element={<CourseList />} />
+          <Route path="/course-list/:input" element={<CourseList />} />
+          <Route path="/course/:id" element={<CourseDetail />} />
+          <Route path="/payment/:courseId" element={<PaymentPage />} />
+          <Route path="/my-enrollments" element={<MyEnrollments />} />
+          <Route path="/player/:courseId" element={<Player />} />
+          <Route path="/loading/:path" element={<Loading />} />
+
+          //Educator
+          <Route path="/educator" element={<Educator />}>
+            <Route index element={<Dashboard />} />
+            <Route path="add-course" element={<AddCourse />} />
+            <Route path="my-course" element={<MyCourses />} />
+            <Route path="student-enrolled" element={<StudentEnrolled />} />
+          </Route>
+        </Routes>
+      </div>
       {!isEducatorRoute && <Footer />}
     </div>
   );

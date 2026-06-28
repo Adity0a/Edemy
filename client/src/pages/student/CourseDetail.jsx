@@ -1,25 +1,59 @@
 import React, { useContext, useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { AppContext } from '../../context/AppContext'
 import Loading from '../../components/student/Loading'
 import { assets } from '../../assets/assets'
+import axios from 'axios'
+import { useAuth } from '@clerk/react'
 
 const CourseDetail = () => {
 
   const { id } = useParams()
-  const { allCourses, calculateRating, currency } = useContext(AppContext)
+  const { allCourses, calculateRating, currency, backendUrl, navigate } = useContext(AppContext)
+  const { getToken } = useAuth()
   const [courseData, setCourseData] = useState(null)
   const [openSections, setOpenSections] = useState({})
   const [isAlreadyEnrolled, setIsAlreadyEnrolled] = useState(false)
 
   const fetchCourseData = async () => {
-    const findCourse = allCourses.find(course => course._id === id)
-    setCourseData(findCourse)
+    try {
+      const { data } = await axios.get(backendUrl + '/api/course/' + id)
+      if (data.success) {
+        setCourseData(data.courseData)
+      }
+    } catch (error) {
+      console.error(error.message)
+    }
+  }
+
+  const checkEnrollment = async () => {
+    try {
+      if (!user) return;
+      const token = await getToken()
+      if (token) {
+        const { data } = await axios.get(backendUrl + '/api/user/enrolled-courses', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            userid: user.id
+          }
+        })
+        if (data.success) {
+          const enrolled = data.enrolledCourses.some(course => course._id === id)
+          setIsAlreadyEnrolled(enrolled)
+        }
+      }
+    } catch (error) {
+      console.error(error.message)
+    }
   }
 
   useEffect(() => {
     fetchCourseData()
-  }, [allCourses, id])
+  }, [id])
+
+  useEffect(() => {
+    checkEnrollment()
+  }, [id])
 
   const toggleSection = (index) => {
     setOpenSections((prev) => ({
@@ -58,11 +92,11 @@ const CourseDetail = () => {
           <div className='pt-8 text-gray-800'>
             <h2 className='text-xl font-semibold'>Course Structure</h2>
             <p className='pt-2 text-sm text-gray-500'>
-              {courseData.courseContent.length} sections • {courseData.courseContent.reduce((total, chapter) => total + chapter.chapterContent.length, 0)} lectures • 27h 25m total duration
+              {courseData.courseContent ? courseData.courseContent.length : 0} sections • {courseData.courseContent ? courseData.courseContent.reduce((total, chapter) => total + chapter.chapterContent.length, 0) : 0} lectures • 27h 25m total duration
             </p>
 
             <div className='mt-4 border border-gray-300 rounded-md overflow-hidden'>
-              {courseData.courseContent.map((chapter, index) => (
+              {courseData.courseContent && courseData.courseContent.map((chapter, index) => (
                 <div key={index} className='border-b border-gray-300 last:border-b-0'>
                   <div className='flex items-center justify-between px-4 py-3 bg-gray-50 cursor-pointer select-none' onClick={() => toggleSection(index)}>
                     <div className='flex items-center gap-2'>
@@ -126,11 +160,11 @@ const CourseDetail = () => {
               <div className='h-4 w-px bg-gray-500/40'></div>
               <div className='flex items-center gap-1'>
                 <img src={assets.lesson_icon} alt="lesson icon" />
-                <p>{courseData.courseContent.reduce((total, chapter) => total + chapter.chapterContent.length, 0)} lessons</p>
+                <p>{courseData.courseContent ? courseData.courseContent.reduce((total, chapter) => total + chapter.chapterContent.length, 0) : 0} lessons</p>
               </div>
             </div>
 
-            <button className='md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium'>
+            <button onClick={() => isAlreadyEnrolled ? navigate(`/player/${courseData._id}`) : navigate(`/payment/${courseData._id}`)} className='md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium'>
               {isAlreadyEnrolled ? 'Already Enrolled' : 'Enroll Now'}
             </button>
 

@@ -2,68 +2,50 @@ import React, { useContext, useEffect, useState } from 'react'
 import { assets } from '../../assets/assets'
 import { AppContext } from '../../context/AppContext'
 import Loading from '../../components/student/Loading'
+import axios from 'axios'
+import { useAuth, useUser } from '@clerk/react'
 
 const Dashboard = () => {
 
-  const { currency } = useContext(AppContext)
+  const { currency, backendUrl } = useContext(AppContext)
+  const { getToken } = useAuth()
+  const { user } = useUser()
   const [dashboardData, setDashboardData] = useState(null)
 
   const fetchDashboardData = async () => {
-    // In a real app, this would be an API call.
-    // Simulating fetching dummyDashboardData from assets.js logic
-    const dummyDashboardData = {
-      totalEarnings: 707.38,
-      enrolledStudentsData: [
-        {
-          courseTitle: "Introduction to JavaScript",
-          student: {
-            _id: "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
-            name: "Great Stack",
-            imageUrl: assets.profile_img_1
-          }
-        },
-        {
-          courseTitle: "Advanced Python Programming",
-          student: {
-            _id: "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
-            name: "Richard Sanford",
-            imageUrl: assets.profile_img_2
-          }
-        },
-        {
-          courseTitle: "Web Development Bootcamp",
-          student: {
-            _id: "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
-            name: "Enrique Murphy",
-            imageUrl: assets.profile_img_3
-          }
-        },
-        {
-          courseTitle: "Data Science with Python",
-          student: {
-            _id: "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
-            name: "Alison Powell",
-            imageUrl: assets.profile_img_1
-          }
-        },
-        {
-          courseTitle: "Cybersecurity Basics",
-          student: {
-            _id: "user_2qQlvXyr02B4Bq6hT0Gvaa5fT9V",
-            name: "Richard Sanford",
-            imageUrl: assets.profile_img_2
-          }
-        }
-      ],
-      totalCourses: 8
-    };
+    try {
+      if (!user) {
+        console.warn("User object not available yet for Dashboard fetch.");
+        return;
+      }
 
-    setDashboardData(dummyDashboardData);
+      const token = await getToken()
+      console.log("Fetching dashboard data for user:", user.id);
+
+      const { data } = await axios.get(backendUrl + '/api/educator/dashboard-data', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          userid: user.id
+        }
+      })
+
+      console.log("Dashboard Data API Response:", data);
+
+      if (data.success) {
+        setDashboardData(data.dashboardData)
+      } else {
+        console.error("Dashboard API Error:", data.message)
+      }
+    } catch (error) {
+      console.error("Fetch Dashboard Error:", error.message)
+    }
   }
 
   useEffect(() => {
-    fetchDashboardData()
-  }, [])
+    if (user) {
+      fetchDashboardData()
+    }
+  }, [user])
 
   if (!dashboardData) return <Loading />
 
@@ -118,7 +100,7 @@ const Dashboard = () => {
                     <span className='truncate'>{item.student.name}</span>
                   </td>
                   <td className='md:px-4 px-2 py-3 truncate'>{item.courseTitle}</td>
-                  <td className='px-4 py-3 hidden sm:table-cell'>{new Date().toLocaleDateString()}</td>
+                  <td className='px-4 py-3 hidden sm:table-cell'>{new Date(item.purchaseDate).toLocaleDateString()}</td>
                 </tr>
               ))}
             </tbody>
