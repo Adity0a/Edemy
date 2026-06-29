@@ -72,7 +72,7 @@ const Dashboard = () => {
         <div className='flex items-center gap-4 bg-white border border-blue-500/20 p-4 rounded-md shadow-sm w-56'>
           <img src={assets.earning_icon} alt="earning_icon" className='w-12' />
           <div>
-            <p className='text-2xl font-medium text-gray-800'>{currency}{dashboardData.totalEarnings}</p>
+            <p className='text-2xl font-medium text-gray-800'>{currency}{dashboardData.totalEarnings.toFixed(2)}</p>
             <p className='text-xs text-gray-500'>Total Earnings</p>
           </div>
         </div>

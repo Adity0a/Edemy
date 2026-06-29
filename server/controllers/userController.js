@@ -57,14 +57,16 @@ export const purchaseCourse = async (req, res) => {
         }
 
         // If user doesn't exist in MongoDB, create them (Sync with Clerk data from request if possible, or placeholder)
-        if (!user) {
-            user = await User.create({
-                _id: userId,
-                name: 'User', // In a real app, you'd get this from Clerk
-                email: 'user@example.com',
-                enrolledCourses: []
-            })
-        }
+// Inside purchaseCourse function...
+if (!user) {
+    user = await User.create({
+        _id: userId,
+        name: 'Student ' + userId.slice(-4), // Example: "Student a1b2"
+        email: 'user@example.com',
+        imageUrl: `https://i.pravatar.cc/150?u=${userId}`, // Automatic dummy photo
+        enrolledCourses: []
+    })
+}
 
         if (user.enrolledCourses.includes(courseId)) {
             return res.json({ success: false, message: 'Already Enrolled' });

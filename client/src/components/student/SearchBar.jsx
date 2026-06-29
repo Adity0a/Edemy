@@ -9,7 +9,11 @@ const SearchBar = ({data}) => {
 
   const onSearchHandler = (e)=>{
     e.preventDefault()
-    navigate('/course-list/'+input)
+    if (input.trim()) {
+      navigate('/course-list/' + input.trim())
+    } else {
+      navigate('/course-list')
+    }
   }
 
   return (

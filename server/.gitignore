@@ -1,11 +1,3 @@
 node_modules
 .env
-fix_data.js
-fix_educator.js
-purchase_seed_data.json
-seed.js
-seedCourse.js
-sync_all_courses.js
-user_seed_data.json
-agent.md
-setUpOfCode.md
+json
