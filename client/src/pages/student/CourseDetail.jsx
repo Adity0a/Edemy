@@ -4,18 +4,21 @@ import { AppContext } from '../../context/AppContext'
 import Loading from '../../components/student/Loading'
 import { assets } from '../../assets/assets'
 import axios from 'axios'
-import { useAuth } from '@clerk/react'
+import { useAuth, useUser } from '@clerk/react'
 
 const CourseDetail = () => {
 
   const { id } = useParams()
   const { allCourses, calculateRating, currency, backendUrl, navigate } = useContext(AppContext)
   const { getToken } = useAuth()
+  const { user } = useUser()
   const [courseData, setCourseData] = useState(null)
   const [openSections, setOpenSections] = useState({})
   const [isAlreadyEnrolled, setIsAlreadyEnrolled] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const fetchCourseData = async () => {
+
     try {
       const { data } = await axios.get(backendUrl + '/api/course/' + id)
       if (data.success) {
@@ -52,10 +55,101 @@ const CourseDetail = () => {
   }, [id])
 
   useEffect(() => {
-    checkEnrollment()
-  }, [id])
+    if (user) {
+      checkEnrollment()
+    }
+  }, [id, user])
+
+  const enrollCourse = async () => {
+    try {
+      if (!user) {
+        alert("Please sign in to enroll");
+        return;
+      }
+
+      setLoading(true)
+      const token = await getToken()
+
+      // Step 1: Create Razorpay Order on Backend
+      const { data } = await axios.post(backendUrl + '/api/user/create-order', { courseId: id }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          userid: user.id
+        }
+      })
+
+      if (!data.success) {
+        alert(data.message || "Failed to create payment order");
+        setLoading(false);
+        return;
+      }
+
+      // Step 2: Configure Razorpay Checkout Modal
+      const options = {
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        amount: data.amount,
+        currency: data.currency,
+        name: "Edemy Online Course",
+        description: `Purchase of ${courseData.courseTitle}`,
+        order_id: data.order_id,
+        handler: async function (response) {
+          try {
+            setLoading(true);
+            const verificationRes = await axios.post(backendUrl + '/api/user/verify-payment', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              courseId: id
+            }, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                userid: user.id
+              }
+            });
+
+            if (verificationRes.data.success) {
+              navigate('/my-enrollments');
+            } else {
+              alert(verificationRes.data.message || "Payment verification failed");
+            }
+          } catch (error) {
+            console.error(error);
+            alert(error.response?.data?.message || error.message);
+          } finally {
+            setLoading(false);
+          }
+        },
+        prefill: {
+          name: user.fullName || user.username || "",
+          email: user.primaryEmailAddress?.emailAddress || "",
+        },
+        theme: {
+          color: "#2563EB",
+        },
+        modal: {
+          ondismiss: function () {
+            setLoading(false);
+            alert("Payment cancelled by the user.");
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.on('payment.failed', function (response) {
+        alert("Payment failed: " + response.error.description);
+        setLoading(false);
+      });
+      rzp.open();
+
+    } catch (error) {
+      console.error(error.message)
+      alert(error.response?.data?.message || error.message)
+      setLoading(false)
+    }
+  }
 
   const toggleSection = (index) => {
+
     setOpenSections((prev) => ({
       ...prev,
       [index]: !prev[index],
@@ -164,8 +258,8 @@ const CourseDetail = () => {
               </div>
             </div>
 
-            <button onClick={() => isAlreadyEnrolled ? navigate(`/player/${courseData._id}`) : navigate(`/payment/${courseData._id}`)} className='md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium'>
-              {isAlreadyEnrolled ? 'Already Enrolled' : 'Enroll Now'}
+            <button onClick={() => isAlreadyEnrolled ? navigate(`/player/${courseData._id}`) : enrollCourse()} disabled={loading} className='md:mt-6 mt-4 w-full py-3 rounded bg-blue-600 text-white font-medium disabled:bg-blue-400'>
+              {loading ? 'Processing...' : (isAlreadyEnrolled ? 'Already Enrolled' : 'Enroll Now')}
             </button>
 
             <div className='pt-6'>

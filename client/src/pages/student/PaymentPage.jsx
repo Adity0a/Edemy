@@ -36,22 +36,81 @@ const PaymentPage = () => {
             if (!user) return;
             setLoading(true)
             const token = await getToken()
-            const { data } = await axios.post(backendUrl + '/api/user/purchase', { courseId }, {
+
+            // Step 1: Create Razorpay Order on Backend
+            const { data } = await axios.post(backendUrl + '/api/user/create-order', { courseId }, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                     userid: user.id
                 }
             })
 
-            if (data.success) {
-                navigate('/my-enrollments')
-            } else {
-                alert(data.message)
+            if (!data.success) {
+                alert(data.message || "Failed to create payment order");
+                setLoading(false);
+                return;
             }
+
+            // Step 2: Configure Razorpay Checkout Modal
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                amount: data.amount,
+                currency: data.currency,
+                name: "Edemy Online Course",
+                description: `Purchase of ${courseData.courseTitle}`,
+                order_id: data.order_id,
+                handler: async function (response) {
+                    try {
+                        setLoading(true);
+                        const verificationRes = await axios.post(backendUrl + '/api/user/verify-payment', {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            courseId
+                        }, {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                userid: user.id
+                            }
+                        });
+
+                        if (verificationRes.data.success) {
+                            navigate('/my-enrollments');
+                        } else {
+                            alert(verificationRes.data.message || "Payment verification failed");
+                        }
+                    } catch (error) {
+                        console.error(error);
+                        alert(error.response?.data?.message || error.message);
+                    } finally {
+                        setLoading(false);
+                    }
+                },
+                prefill: {
+                    name: user.fullName || user.username || "",
+                    email: user.primaryEmailAddress?.emailAddress || "",
+                },
+                theme: {
+                    color: "#2563EB",
+                },
+                modal: {
+                    ondismiss: function () {
+                        setLoading(false);
+                        alert("Payment cancelled by the user.");
+                    }
+                }
+            };
+
+            const rzp = new window.Razorpay(options);
+            rzp.on('payment.failed', function (response) {
+                alert("Payment failed: " + response.error.description);
+                setLoading(false);
+            });
+            rzp.open();
+
         } catch (error) {
             console.error(error.message)
-            alert(error.message)
-        } finally {
+            alert(error.response?.data?.message || error.message)
             setLoading(false)
         }
     }
@@ -107,7 +166,7 @@ const PaymentPage = () => {
                     {loading ? 'Processing...' : `Pay ${currency}${(courseData.coursePrice - (courseData.discount * courseData.coursePrice) / 100).toFixed(2)} Now`}
                 </button>
 
-                <p className='text-center text-xs text-gray-400 mt-4 italic'>This is a dummy payment integration for testing purposes.</p>
+                <p className='text-center text-xs text-gray-400 mt-4 italic'>Secure payment powered by Razorpay Test Mode.</p>
             </div>
         </div>
     )

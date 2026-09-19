@@ -23,7 +23,7 @@ const App = () => {
       {!isEducatorRoute && <Navbar />}
       <div className="flex-1">
         <Routes>
-          //Student
+          {/* Student */}
           <Route path="/" element={<Home />} />
           <Route path="/course-list" element={<CourseList />} />
           <Route path="/course-list/:input" element={<CourseList />} />
@@ -33,7 +33,7 @@ const App = () => {
           <Route path="/player/:courseId" element={<Player />} />
           <Route path="/loading/:path" element={<Loading />} />
 
-          //Educator
+          {/* Educator */}
           <Route path="/educator" element={<Educator />}>
             <Route index element={<Dashboard />} />
             <Route path="add-course" element={<AddCourse />} />

@@ -1,5 +1,5 @@
 import express from 'express';
-import { getUserData, userEnrolledCourses, purchaseCourse, updateCourseProgress, getUserCourseProgress, addRating } from '../controllers/userController.js';
+import { getUserData, userEnrolledCourses, purchaseCourse, updateCourseProgress, getUserCourseProgress, addRating, createRazorpayOrder, verifyRazorpayPayment } from '../controllers/userController.js';
 
 const userRouter = express.Router();
 
@@ -9,5 +9,8 @@ userRouter.post('/purchase', purchaseCourse);
 userRouter.post('/update-progress', updateCourseProgress);
 userRouter.post('/get-progress', getUserCourseProgress);
 userRouter.post('/add-rating', addRating);
+userRouter.post('/create-order', createRazorpayOrder);
+userRouter.post('/verify-payment', verifyRazorpayPayment);
+
 
 export default userRouter;

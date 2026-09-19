@@ -2,6 +2,14 @@ import User from "../models/User.js";
 import Course from "../models/Course.js";
 import Purchase from "../models/Purchase.js";
 import CourseProgress from "../models/CourseProgress.js";
+import Razorpay from "razorpay";
+import crypto from "crypto";
+
+const razorpayInstance = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID,
+    key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
+
 
 // Get User Data
 export const getUserData = async (req, res) => {
@@ -164,3 +172,104 @@ export const addRating = async (req, res) => {
         res.json({ success: false, message: error.message });
     }
 }
+
+// Create Razorpay Order
+export const createRazorpayOrder = async (req, res) => {
+    try {
+        const { courseId } = req.body;
+        const userId = req.auth.userId;
+
+        const course = await Course.findById(courseId);
+        if (!course) {
+            return res.json({ success: false, message: 'Course not found' });
+        }
+
+        const finalPrice = course.coursePrice - (course.discount * course.coursePrice) / 100;
+        const amountInPaise = Math.round(finalPrice * 100);
+
+        if (amountInPaise < 100) {
+            return res.status(400).json({ success: false, message: 'Minimum amount must be 100 paise' });
+        }
+
+        const options = {
+            amount: amountInPaise,
+            currency: "INR",
+            receipt: `receipt_${Date.now()}`
+        };
+
+        const order = await razorpayInstance.orders.create(options);
+        res.json({
+            success: true,
+            order_id: order.id,
+            amount: order.amount,
+            currency: order.currency
+        });
+    } catch (error) {
+        console.error("Razorpay Create Order Error:", error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+
+// Verify Razorpay Payment Signature
+export const verifyRazorpayPayment = async (req, res) => {
+    try {
+        const { razorpay_order_id, razorpay_payment_id, razorpay_signature, courseId } = req.body;
+        const userId = req.auth.userId;
+
+        if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !courseId) {
+            return res.status(400).json({ success: false, message: 'Missing fields' });
+        }
+
+        // Verify Signature
+        const text = razorpay_order_id + "|" + razorpay_payment_id;
+        const generated_signature = crypto
+            .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+            .update(text)
+            .digest("hex");
+
+        if (generated_signature !== razorpay_signature) {
+            return res.status(400).json({ success: false, message: 'Payment verification failed' });
+        }
+
+        // Fulfillment logic (Same as purchaseCourse)
+        const course = await Course.findById(courseId);
+        let user = await User.findById(userId);
+
+        if (!course) {
+            return res.json({ success: false, message: 'Course not found' });
+        }
+
+        if (!user) {
+            user = await User.create({
+                _id: userId,
+                name: 'Student ' + userId.slice(-4),
+                email: 'user@example.com',
+                imageUrl: `https://i.pravatar.cc/150?u=${userId}`,
+                enrolledCourses: []
+            });
+        }
+
+        if (user.enrolledCourses.includes(courseId)) {
+            return res.json({ success: false, message: 'Already Enrolled' });
+        }
+
+        user.enrolledCourses.push(courseId);
+        await user.save();
+
+        course.enrolledStudents.push(userId);
+        await course.save();
+
+        await Purchase.create({
+            courseId,
+            userId,
+            amount: course.coursePrice - (course.discount * course.coursePrice) / 100,
+            status: 'completed'
+        });
+
+        res.json({ success: true, message: 'Enrolled and Paid Successfully' });
+    } catch (error) {
+        console.error("Razorpay Verify Payment Error:", error.message);
+        res.status(500).json({ success: false, message: error.message });
+    }
+}
+
