@@ -51,10 +51,19 @@ const PaymentPage = () => {
                 return;
             }
 
+            const RAZORPAY_KEY = import.meta.env.VITE_RAZORPAY_KEY_ID;
+
+            if (!RAZORPAY_KEY) {
+                alert("Razorpay Key ID is missing! Please check your .env file and restart the development server.");
+                setLoading(false);
+                return;
+            }
+
             // Step 2: Configure Razorpay Checkout Modal
             const options = {
-                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                key: RAZORPAY_KEY,
                 amount: data.amount,
+
                 currency: data.currency,
                 name: "Edemy Online Course",
                 description: `Purchase of ${courseData.courseTitle}`,
